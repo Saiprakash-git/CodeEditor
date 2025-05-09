@@ -1,7 +1,5 @@
-
-
-
 import 'dart:convert';
+import 'dart:io';
 import 'package:any_time_code/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -32,6 +30,10 @@ class CodeRunnerApp extends StatelessWidget {
 }
 
 class CodeEditorScreen extends StatefulWidget {
+  final File file; // <--- add this
+
+  CodeEditorScreen({required this.file}); // <--- modify constructor
+
   @override
   _CodeEditorScreenState createState() => _CodeEditorScreenState();
 }
@@ -55,8 +57,21 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
   @override
   void initState() {
     super.initState();
-    _codeController.text = defaultSnippets[_selectedLanguage]!;
+
+    _loadFileContent();
   }
+
+  void _loadFileContent() async {
+    if (widget.file.existsSync()) {
+      String content = await widget.file.readAsString();
+      setState(() {
+        _codeController.text = content;
+      });
+    } else {
+      _codeController.text = defaultSnippets[_selectedLanguage]!;
+    }
+  }
+
 
   String _getFileExtension(String lang) {
     switch (lang) {
@@ -72,6 +87,18 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
         return 'js';
       default:
         return 'txt';
+    }
+  }
+  Future<void> _saveToFile() async {
+    try {
+      await widget.file.writeAsString(_codeController.text);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('File saved successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving file: $e')),
+      );
     }
   }
 
@@ -173,7 +200,7 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
               Icon(Icons.code),
               SizedBox(width: 8),
               Text(
-                "AnyTimeCode",
+                "TheCodeEditor",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
@@ -185,6 +212,11 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
         ),
 
         actions: [
+          IconButton(
+            icon: Icon(Icons.save),
+            onPressed: _saveToFile,
+            tooltip: "Save Code",
+          ),
           IconButton(
             icon: Icon(Icons.play_arrow),
             onPressed: _isRunning ? null : _executeCode,
@@ -210,6 +242,7 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
             ),
           ),
         ],
+
         elevation: 4,
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(40.0),

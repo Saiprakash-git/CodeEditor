@@ -32,22 +32,16 @@ class _SplashScreenState extends State<SplashScreen>
       final lastOpened = prefs.getInt("lastOpened") ?? 0;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      // Show LaunchScreen if not opened in last 24 hours
-      if (now - lastOpened > 24 * 60 * 60 * 1000) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => LaunchScreen()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => CodeEditorScreen()),
-        );
-      }
+      // Always show LaunchScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => LaunchScreen()),
+      );
 
       await prefs.setInt("lastOpened", now);
     });
   }
+
 
   @override
   void dispose() {
